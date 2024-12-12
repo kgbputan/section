@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        .header { text-align: center; }
+        input[type="text"], textarea { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .entries { margin-top: 20px; }
+        .entry { border: 1px solid #ddd; padding: 10px; margin: 5px 0; background-color: #fff; }
+        .entry .id { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Knowledge Base</h1>
+        <p>Enter the name of the site or text below:</p>
+    </div>
+
+    <form id="textForm">
+        <input type="text" id="searchBar" placeholder="Search by text ID or content...">
+        <textarea id="inputText" rows="4" placeholder="Enter your text here"></textarea>
+        <button type="submit">Submit Text</button>
+    </form>
+
+    <div class="entries" id="entriesList">
+        <!-- Stored text entries will appear here -->
+    </div>
+</div>
+
+<script>
+    // Check if there's already data in localStorage, otherwise initialize it
+    if (!localStorage.getItem('entries')) {
+        localStorage.setItem('entries', JSON.stringify([]));
+    }
+
+    const form = document.getElementById("textForm");
+    const inputText = document.getElementById("inputText");
+    const entriesList = document.getElementById("entriesList");
+    const searchBar = document.getElementById("searchBar");
+
+    // Retrieve stored entries from localStorage
+    let entries = JSON.parse(localStorage.getItem('entries'));
+
+    // Display stored entries
+    function displayEntries(query = "") {
+        entriesList.innerHTML = '';
+        const filteredEntries = entries.filter(entry => 
+            entry.text.toLowerCase().includes(query.toLowerCase()) || 
+            entry.id.toString().includes(query)
+        );
+        filteredEntries.forEach(entry => {
+            const entryDiv = document.createElement("div");
+            entryDiv.classList.add("entry");
+            entryDiv.innerHTML = `<div class="id">ID: ${entry.id}</div><div>${entry.text}</div>
+                                  <button onclick="deleteEntry(${entry.id})">Delete</button>`;
+            entriesList.appendChild(entryDiv);
+        });
+    }
+
+    // Add new text entry
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const text = inputText.value;
+        if (text.trim() !== "") {
+            const newEntry = { id: Date.now(), text: text };  // Using Date.now() for a unique ID
+            entries.push(newEntry);
+            localStorage.setItem('entries', JSON.stringify(entries));  // Save to localStorage
+            displayEntries();
+            inputText.value = ''; // Clear the input after submission
+        }
+    });
+
+    // Search functionality
+    searchBar.addEventListener("input", function() {
+        displayEntries(searchBar.value);
+    });
+
+    // Delete entry
+    function deleteEntry(entryId) {
+        entries = entries.filter(entry => entry.id !== entryId);
+        localStorage.setItem('entries', JSON.stringify(entries));  // Update localStorage
+        displayEntries();
+    }
+
+    // Initial display of entries
+    displayEntries();
+</script>
+
+</body>
+</html>
